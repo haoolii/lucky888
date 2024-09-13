@@ -1,15 +1,31 @@
-import BigNumber from "bignumber.js";
+export type RollThirdPartyFn = () => Promise<number>;
+
+export type ThirdPartyNotificationFn = (msg: string) => Promise<void>;
+
+export type Player = {
+  id: string;
+  name: string;
+};
 
 export enum BetType {
-    BIG = "BIG",
-    SMALL = "SMALL",
-    ODD = "ODD",
-    EVEN = "EVEN",
-    TRIPLE = "TRIPLE",
+  BIG = "BIG",
+  SMALL = "SMALL",
+  ODD = "ODD",
+  EVEN = "EVEN",
+  TRIPLE = "TRIPLE",
 }
 
 export type Bet = {
-    player: string;
-    betType: BetType;
-    amount: string;
+  player: Player;
+  betType: BetType;
+  amount: string;
+};
+
+export enum BettingStatus {
+  NOT_STARTED = "NOT_STARTED",
+  BETTING = "BETTING",
+  LOCK_BETS = "LOCK_BETS",
+  DRAWING = "DRAWING",
+  PAYOUT = "PAYOUT",
+  RESETTING = "RESETTING",
 }

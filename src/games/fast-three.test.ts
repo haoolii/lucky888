@@ -4,8 +4,8 @@ describe('FastThree', () => {
     let fastThree: FastThree;
 
     beforeEach(() => {
-        fastThree = new FastThree();
-        jest.spyOn(fastThree, 'roll').mockImplementation(() => 1); // mock roll 函數，設定初始值為 1
+        // fastThree = new FastThree();
+        // jest.spyOn(fastThree, 'roll').mockImplementation(() => 1); // mock roll 函數，設定初始值為 1
     });
 
     test('應該骰出三個點數', () => {
