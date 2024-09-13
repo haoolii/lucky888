@@ -10,14 +10,14 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout 
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKERscm_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
+                    docker.build("${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}")
                 }
             }
         }
@@ -26,11 +26,8 @@ pipeline {
             steps {
                 script {
                     sh """
-                    # 停止並移除任何已經運行的容器
                     docker stop ${DOCKER_IMAGE_NAME} || true
                     docker rm ${DOCKER_IMAGE_NAME} || true
-
-                    # 運行新的 Docker 容器
                     docker run -d -p ${PORT}:${PORT} --name ${DOCKER_IMAGE_NAME} ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}
                     """
                 }
