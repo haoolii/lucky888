@@ -1,41 +1,32 @@
 import "dotenv/config";
 import TelegramBot from "node-telegram-bot-api";
-import { FastThreeBettingSystem } from "./games/fast-three";
-import express from "express";
-
-const delay = (milliseconds: number) => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => resolve(true), milliseconds);
-  });
-};
-
-const app = express();
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN || "";
-const PORT = process.env.PORT || 1234;
+import FastThreeBettingSystem from "./games/fast-three-betting-system";
+import config from "./config";
+import { delay } from "./core/utils";
 
 const main = async () => {
-  // 健康檢查
-  app.get("/health", (req, res) => {
-    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
-  });
-
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-
-  const bot = new TelegramBot(TOKEN, { polling: true });
+  const bot = new TelegramBot(config.TELEGRAM_BOT_TOKEN, { polling: true });
 
   const roll = async () => {
-    return (await bot.sendDice("-4550812437")).dice?.value || 0;
+    return (await bot.sendDice(config.TELEGRAM_CHAT_ID)).dice?.value || 0;
   };
 
   const notification = async (msg: string) => {
-    await bot.sendMessage("-4550812437", msg);
+    await bot.sendMessage(config.TELEGRAM_CHAT_ID, msg);
   };
 
   const fastThreeBetting = new FastThreeBettingSystem(roll, notification);
 
   const run = async () => {
+    const memoryUsage = process.memoryUsage();
+    console.log("==================================================");
+    console.log("Memory Usage:");
+    console.log(`RSS: ${memoryUsage.rss / 1024 / 1024} MB`);
+    console.log(`Heap Total: ${memoryUsage.heapTotal / 1024 / 1024} MB`);
+    console.log(`Heap Used: ${memoryUsage.heapUsed / 1024 / 1024} MB`);
+    console.log(`External: ${memoryUsage.external / 1024 / 1024} MB`);
+    console.log(`Array Buffers: ${memoryUsage.arrayBuffers / 1024 / 1024} MB`);
+    console.log("==================================================");
     await fastThreeBetting.start();
     await delay(30000);
     await fastThreeBetting.lockBets();
