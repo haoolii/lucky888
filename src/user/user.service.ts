@@ -1,5 +1,4 @@
 import db from "../db";
-import { CreateUserParams } from "./user.types";
 
 /**
  * User Service
@@ -9,11 +8,11 @@ class UserService {
 
     constructor() {}
     
-    async createUser(params: CreateUserParams) {
+    async createUser(id: string) {
         try {
             await db.user.create({
                 data: {
-                    id: params.id,
+                    id,
                     balance: 0,
                     lockedBalance: 0
                 }
