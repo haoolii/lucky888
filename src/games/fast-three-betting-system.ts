@@ -108,7 +108,7 @@ export default class FastThreeBettingSystem {
       return;
     }
 
-    await this.notification(`(${this.betId}) 開獎中`);
+    // await this.notification(`(${this.betId}) 開獎中`);
 
     this.results = (await this.game?.rollDice()) || [];
 
@@ -118,12 +118,12 @@ export default class FastThreeBettingSystem {
 
     console.log(`[STATUS LOGGING] ${this.status}`);
 
-    await this.notification(
-      `(${this.betId}) 骰出點數 [${this.results.join(",")}]`
-    );
-    await this.notification(
-      `(${this.betId}) 開獎結果 ${JSON.stringify(resultSummary)}`
-    );
+    // await this.notification(
+    //   `(${this.betId}) 骰出點數 [${this.results.join(",")}]`
+    // );
+    // await this.notification(
+    //   `(${this.betId}) 開獎結果 ${JSON.stringify(resultSummary)}`
+    // );
 
     return resultSummary;
   }
@@ -135,7 +135,7 @@ export default class FastThreeBettingSystem {
     if (this.status !== BettingStatus.DRAWING) {
       return;
     }
-    await this.notification(`(${this.betId}) 派發獎勵 無資料`);
+    // await this.notification(`(${this.betId}) 派發獎勵 無資料`);
 
     const summary = this.game?.getResult();
 
@@ -214,7 +214,7 @@ export default class FastThreeBettingSystem {
    * 重設遊戲
    */
   async reset() {
-    await this.notification(`(${this.betId}) 重置遊戲`);
+    // await this.notification(`(${this.betId}) 重置遊戲`);
     this.status = BettingStatus.RESETTING;
     console.log(`[STATUS LOGGING] ${this.status}`);
     this.bets = [];
