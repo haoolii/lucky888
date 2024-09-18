@@ -1,11 +1,11 @@
 import { delay } from "../core/utils";
 
-type RandomFn = () => Promise<number>;
+type RollDiceFn = () => Promise<number>;
 
 /**
  * 骰子快三遊戲 Class
  */
-export default class FastThree {
+export default class Gam {
   /**
    * 骰子結果
    */
@@ -14,7 +14,7 @@ export default class FastThree {
   /**
    * 三方擲骰子
    */
-  constructor(private randomFn: RandomFn) {
+  constructor(private rollDiceFn: RollDiceFn) {
     this.diceResults = [];
   }
 
@@ -38,7 +38,7 @@ export default class FastThree {
    * 單次骰出結果
    */
   roll() {
-    return this.randomFn();
+    return this.rollDiceFn();
   }
 
   /**
