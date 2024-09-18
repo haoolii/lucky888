@@ -20,10 +20,21 @@ model User {
 
 model BetRecord {
   id   String     @id
+  status    Int
   total     Int
   dice1     Int
   dice2     Int
   dice3     Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model UserBetRecord {
+  id        String @id @default(uuid())
+  betId     String
+  userId    String
+  betAmount String
+  isWin     Boolean?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
 }

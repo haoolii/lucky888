@@ -1,11 +1,14 @@
+import BigNumber from "bignumber.js";
 import FastThree from "./fast-three";
 import {
   Bet,
+  betOdds,
   BettingStatus,
   BetType,
   Player,
   RollThirdPartyFn,
   ThirdPartyNotificationFn,
+  ThirdPartyNotificationHtmlFn,
 } from "./fast-three.types";
 
 /**
@@ -25,7 +28,8 @@ export default class FastThreeBettingSystem {
 
   constructor(
     private rollThirdPartyFn: RollThirdPartyFn,
-    private notification: ThirdPartyNotificationFn
+    private notification: ThirdPartyNotificationFn,
+    private notification2: ThirdPartyNotificationHtmlFn
   ) {
     this.game = new FastThree(this.rollThirdPartyFn);
     console.log(`[STATUS LOGGING] ${this.status}`);
@@ -87,7 +91,7 @@ export default class FastThreeBettingSystem {
     this.status = BettingStatus.LOCK_BETS;
 
     await this.notification(
-      `(${this.betId})停止下注, 下注人數 ${this.bets?.length || 0}`
+      `(${this.betId})停止下注, 總注數 ${this.bets?.length || 0}`
     );
 
     console.log(`[STATUS LOGGING] ${this.status}`);
@@ -135,6 +139,14 @@ export default class FastThreeBettingSystem {
 
     const summary = this.game?.getResult();
 
+    const betResults: {
+      player: Player;
+      isWin: boolean;
+      betType: BetType;
+      betAmount: string;
+      receivedAmount: string;
+    }[] = [];
+
     this.bets.forEach((bet) => {
       if (!summary) return;
 
@@ -155,17 +167,41 @@ export default class FastThreeBettingSystem {
         case BetType.EVEN:
           win = summary.isEven && !summary.isTriple;
           break;
+        case BetType.BIG_EVEN:
+          win = summary.isBigEven && !summary.isTriple;
+          break;
+        case BetType.BIG_ODD:
+          win = summary.isBigOdd && !summary.isTriple;
+          break;
+        case BetType.SMALL_EVEN:
+          win = summary.isSmallEven && !summary.isTriple;
+        case BetType.SMALL_ODD:
+          win = summary.isSmallOdd && !summary.isTriple;
+          break;
         case BetType.TRIPLE:
           win = summary.isTriple;
           break;
+
         default:
           console.log(`無效的下注類型: ${betType}`);
       }
 
       if (win) {
-        console.log(`${player.id}  Win, Type: ${betType}, Amount: ${amount}`);
+        betResults.push({
+          player,
+          isWin: true,
+          betType,
+          betAmount: amount,
+          receivedAmount: BigNumber(amount).times(betOdds[betType]).toString(),
+        });
       } else {
-        console.log(`${player.id} Lost, Type: ${betType}, Amount: ${amount}`);
+        betResults.push({
+          player,
+          isWin: false,
+          betType,
+          betAmount: amount,
+          receivedAmount: "0",
+        });
       }
     });
 

@@ -46,11 +46,11 @@ function mapFromBetType(betType: BetType): string {
   return typeString;
 }
 
-export function fastThreeParseBet(input: string) {
+export function inputStringParseToBetType(input: string) {
   const pattern = /(大單|大双|大雙|小單|小双|小雙|大|小|單|双|雙)(\d+)/g;
   const matches = input.matchAll(pattern);
 
-  const result = [];
+  const result: any[] = [];
 
   for (const match of matches) {
     const [, stringType, amount] = match;

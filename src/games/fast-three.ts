@@ -1,3 +1,4 @@
+import { delay } from "../core/utils";
 import { RollThirdPartyFn } from "./fast-three.types";
 
 /**
@@ -20,12 +21,16 @@ export default class FastThree {
    * 骰出結果
    */
   async rollDice() {
-    this.diceResults = [
-      await this.roll(),
-      await this.roll(),
-      await this.roll(),
-    ];
-    return this.diceResults;
+    try {
+      this.diceResults.push(await this.roll());
+      await delay(1000);
+      this.diceResults.push(await this.roll());
+      await delay(1000);
+      this.diceResults.push(await this.roll());
+      return this.diceResults;
+    } catch (err) {
+      throw new Error("擲骰子過程出錯了");
+    }
   }
 
   /**
@@ -86,6 +91,38 @@ export default class FastThree {
   }
 
   /**
+   * 判斷是否為大單
+   * 大單：11-17 且為單數
+   */
+  isBigOdd() {
+    return this.isBig() && this.isOdd();
+  }
+
+  /**
+   * 判斷是否為大雙
+   * 大雙：11-17 且為雙數
+   */
+  isBigEven() {
+    return this.isBig() && this.isEven();
+  }
+
+  /**
+   * 判斷是否為小單
+   * 小單：4-10 且為單數
+   */
+  isSmallOdd() {
+    return this.isSmall() && this.isOdd();
+  }
+
+  /**
+   * 判斷是否為小雙
+   * 小雙：4-10 且為雙數
+   */
+  isSmallEven() {
+    return this.isSmall() && this.isEven();
+  }
+
+  /**
    * 回傳開獎結果
    */
   getResult() {
@@ -97,6 +134,10 @@ export default class FastThree {
       isOdd: this.isOdd(),
       isEven: this.isEven(),
       isTriple: this.isTriple(),
+      isBigOdd: this.isBigOdd(),
+      isBigEven: this.isBigEven(),
+      isSmallOdd: this.isSmallOdd(),
+      isSmallEven: this.isSmallEven(),
     };
   }
 
