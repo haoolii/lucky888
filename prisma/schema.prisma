@@ -60,3 +60,11 @@ model PayoutPlayerRecord {
 
   playerBetRecord PlayerBetRecord @relation("PlayerBetRecord_PayoutPlayerRecord", fields: [playerBetRecordId], references: [id])
 }
+
+
+model UserRace {
+  id          String   @id @default(uuid())
+  balance     Decimal
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
