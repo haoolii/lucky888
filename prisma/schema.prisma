@@ -46,3 +46,13 @@ model PlayerBetRecord {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model PayoutPlayerRecord {
+  id                String @id @default(uuid())
+  roundId           String
+  playerId          String
+  playerBetRecordId String
+  payoutAmount      String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}

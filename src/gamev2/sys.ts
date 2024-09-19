@@ -2,7 +2,16 @@ import logger from "../core/logger";
 import { delay } from "../core/utils";
 import { STATUS } from "./constant";
 import Gam from "./gam";
-import { createRound, deleteCurrentRound, getCurrentRound, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./oper";
+import {
+  createRound,
+  deleteCurrentRound,
+  getCurrentRound,
+  getRoundPlayerBets,
+  payoutRoundPlayer,
+  setCurrentRound,
+  updateRoundDiceResult,
+  updateRoundStatus,
+} from "./oper";
 import { broadcast, diceRoll } from "./tg";
 
 /**
@@ -15,136 +24,135 @@ import { broadcast, diceRoll } from "./tg";
  * reset     重置遊戲
  */
 const sys = async () => {
-    await start();
+  await start();
 };
 
 const start = async () => {
-    logger.info('[STATUS] Start');
+  logger.info("[STATUS] Start");
 
-    await deleteCurrentRound();
+  await deleteCurrentRound();
 
-    const round = await createRound();
+  const round = await createRound();
 
-    logger.info('[STATUS] Start Round', round?.id);
+  logger.info("[STATUS] Start Round", round?.id);
 
-    if (!round) return;
+  if (!round) return;
 
-    await setCurrentRound(round.id);
+  await setCurrentRound(round.id);
 
-    await updateRoundStatus(round.id, STATUS.NOT_STARTED);
+  await updateRoundStatus(round.id, STATUS.NOT_STARTED);
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(`(${round.id})期 即將開始`);
+  await broadcast(`(${round.id})期 即將開始`);
 
-    await beginbets();
+  await beginbets();
 };
 
 const beginbets = async () => {
-    logger.info('[STATUS] Start Begin Bets');
+  logger.info("[STATUS] Start Begin Bets");
 
-    const round = await getCurrentRound();
+  const round = await getCurrentRound();
 
-    if (!round) return;
+  if (!round) return;
 
-    await updateRoundStatus(round.id, STATUS.BETTING);
+  await updateRoundStatus(round.id, STATUS.BETTING);
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(`(${round.id}), 開始下注 (300S)`);
+  await broadcast(`(${round.id}), 開始下注 (300S)`);
 
-    await delay(30000);
+  await delay(30000);
 
-    await lockBets();
-
-}
+  await lockBets();
+};
 
 const lockBets = async () => {
-    logger.info('[STATUS] Start Lock Bets');
+  logger.info("[STATUS] Start Lock Bets");
 
-    const round = await getCurrentRound();
+  const round = await getCurrentRound();
 
-    if (!round) return;
+  if (!round) return;
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(`(${round.id}), 停止下注`);
+  await broadcast(`(${round.id}), 停止下注`);
 
-    await updateRoundStatus(round.id, STATUS.LOCK_BETS);
+  await updateRoundStatus(round.id, STATUS.LOCK_BETS);
 
-    await draw();
+  await draw();
 };
 
 const draw = async () => {
-    logger.info('[STATUS] Start Draw');
+  logger.info("[STATUS] Start Draw");
 
-    const round = await getCurrentRound();
+  const round = await getCurrentRound();
 
-    if (!round) return;
+  if (!round) return;
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(`(${round.id}), 即將開獎`);
+  await broadcast(`(${round.id}), 即將開獎`);
 
-    await updateRoundStatus(round.id, STATUS.DRAWING);
+  await updateRoundStatus(round.id, STATUS.DRAWING);
 
-    const gam = new Gam(async () => await diceRoll());
+  const gam = new Gam(async () => await diceRoll());
 
-    const results = (await gam?.rollDice()) || [];
+  const results = (await gam?.rollDice()) || [];
 
-    const resultSummary = gam?.getResult();
+  const resultSummary = gam?.getResult();
 
-    
-    logger.info(results);
-    
-    await updateRoundDiceResult(round.id, results);
+  logger.info(results);
 
-    await delay(1000);
+  await updateRoundDiceResult(round.id, results);
 
-    await broadcast(`(${round.id}), 擲骰結果 <pre>${JSON.stringify(results, null, 2)}</pre>`);
+  await delay(1000);
 
-    await delay(1000);
+  await broadcast(
+    `(${round.id}), 開獎結果 <pre>${JSON.stringify(
+      resultSummary,
+      null,
+      2
+    )}</pre>`
+  );
 
-    await broadcast(`(${round.id}), 開獎結果 <pre>${JSON.stringify(resultSummary, null, 2)}</pre>`);
-
-    await payout();
+  await payout();
 };
 
 const payout = async () => {
-    logger.info('[STATUS] Start Payout');
+  logger.info("[STATUS] Start Payout");
 
-    const round = await getCurrentRound();
+  const round = await getCurrentRound();
 
-    if (!round) return;
+  if (!round) return;
 
-    await updateRoundStatus(round.id, STATUS.PAYOUT);
+  await updateRoundStatus(round.id, STATUS.PAYOUT);
 
-    await delay(1000);
+  await broadcast(`(${round.id}), 開始派獎`);
 
-    await broadcast(`(${round.id}), 開始派獎`);
+  await delay(1000);
 
-    await reset();
+  await payoutRoundPlayer(round.id);
+
+  await reset();
 };
 
 const reset = async () => {
-    logger.info('[STATUS] Start Reset');
+  logger.info("[STATUS] Start Reset");
 
-    const round = await getCurrentRound();
+  const round = await getCurrentRound();
 
-    if (!round) return;
+  if (!round) return;
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(`(${round.id}), 遊戲完成 重置遊戲中`);
+  await broadcast(`(${round.id}), 遊戲完成 重置遊戲中`);
 
-    await updateRoundStatus(round.id, STATUS.RESETTING);
+  await updateRoundStatus(round.id, STATUS.RESETTING);
 
-    await deleteCurrentRound();
+  await deleteCurrentRound();
 
-    await updateRoundStatus(round.id, STATUS.FINISHED);
-
+  await updateRoundStatus(round.id, STATUS.FINISHED);
 };
 
-export {
-    sys
-}
+export { sys };
