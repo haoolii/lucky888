@@ -7,6 +7,7 @@ import {
   deleteCurrentRound,
   getCurrentRound,
   getRoundPlayerBets,
+  getRoundPlayerPayoutBets,
   payoutRoundPlayer,
   setCurrentRound,
   updateRoundDiceResult,
@@ -134,16 +135,17 @@ const payout = async () => {
 
   await updateRoundStatus(round.id, STATUS.PAYOUT);
 
-  await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
-    round: round.id
-  });
-
   await delay(1000);
 
   await payoutRoundPlayer(round.id);
 
   // TODO: 撈出Payout結果
-  // const playerBets = await getRoundPlayerBets(round.id);
+  const playerBets = await getRoundPlayerPayoutBets(round.id);
+
+  await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
+    round: round.id,
+    payoutRecords: playerBets
+  });
 
   await reset();
 };

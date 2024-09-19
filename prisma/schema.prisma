@@ -11,22 +11,22 @@ datasource db {
 }
 
 model Player {
-  id    String     @id
-  balance String
+  id            String   @id
+  balance       String
   lockedBalance String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model CurrentRound {
   id        String   @id @default("current")
-  roundId   String 
+  roundId   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model BetRound {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   status    String
   total     Int?
   dice1     Int?
@@ -37,7 +37,7 @@ model BetRound {
 }
 
 model PlayerBetRecord {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   playerId  String
   roundId   String
   betType   String
@@ -45,14 +45,18 @@ model PlayerBetRecord {
   status    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  payouts PayoutPlayerRecord[] @relation("PlayerBetRecord_PayoutPlayerRecord")
 }
 
 model PayoutPlayerRecord {
-  id                String @id @default(uuid())
+  id                String   @id @default(uuid())
   roundId           String
   playerId          String
   playerBetRecordId String
   payoutAmount      String
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+
+  playerBetRecord PlayerBetRecord @relation("PlayerBetRecord_PayoutPlayerRecord", fields: [playerBetRecordId], references: [id])
 }

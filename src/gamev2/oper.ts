@@ -204,6 +204,22 @@ export const getRoundPlayerBets = async (roundId: string) => {
   }
 };
 
+export const getRoundPlayerPayoutBets = async (roundId: string) => {
+  try {
+    const records = await db.payoutPlayerRecord.findMany({
+      where: {
+        roundId
+      },
+      include: {
+        playerBetRecord: true
+      }
+    })
+    return records;
+  } catch (err) {
+    console.log("Current round error", err);
+  }
+};
+
 export const payoutRoundPlayer = async (roundId: string) => {
   try {
     await db.$transaction(async (tdb) => {
@@ -288,3 +304,4 @@ export const createUserInfo = async (playerId: string) => {
     console.log("Create player error", err);
   }
 }
+
