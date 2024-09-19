@@ -256,26 +256,35 @@ export const payoutRoundPlayer = async (roundId: string) => {
   }
 };
 
-// const result = await prisma.$transaction(async (prisma) => {
-//   // 取得所有參與遊戲的紀錄
-//   const participants = await prisma.gameRecord.findMany({
-//     where: { gameId: 123, status: "PENDING" },
-//   });
+export const getPlayerInfo = async (playerId: string) => {
+  try {
+    const player = await db.player.findUnique({
+      where: {
+        id: playerId
+      },
+    });
 
-//   // 逐一處理每個參與者
-//   for (let participant of participants) {
-//     const betAmount = participant.betAmount;
-//     let winOrLoss = calculateWinOrLoss(betAmount); // 計算贏或輸
+    if (player) {
+      return player;
+    } else {
+      return false;
+    }
+  } catch (err) {
+    console.log("Query player error", err);
+  }
+}
 
-//     // 更新紀錄：贏多少或輸多少
-//     await prisma.gameRecord.update({
-//       where: { id: participant.id },
-//       data: {
-//         result: winOrLoss,
-//         status: "PROCESSED", // 更新狀態
-//       },
-//     });
-//   }
-
-//   return { success: true };
-// });
+export const createUserInfo = async (playerId: string) => {
+  try {
+    const player = await db.player.create({
+      data: {
+        id: playerId,
+        balance: '0',
+        lockedBalance: '0'
+      }
+    })
+    return player;
+  } catch (err) {
+    console.log("Create player error", err);
+  }
+}

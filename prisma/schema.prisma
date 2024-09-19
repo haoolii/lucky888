@@ -10,10 +10,10 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Player {
   id    String     @id
-  balance Decimal
-  lockedBalance Decimal
+  balance String
+  lockedBalance String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

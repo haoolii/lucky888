@@ -12,7 +12,8 @@ import {
   updateRoundDiceResult,
   updateRoundStatus,
 } from "./oper";
-import { broadcast, diceRoll } from "./tg";
+import { broadcast, diceRoll } from "../tg/tg";
+import { MSG_KEY } from "../tg/key";
 
 /**
  * 骰子賭局管理
@@ -44,7 +45,9 @@ const start = async () => {
 
   await delay(1000);
 
-  await broadcast(`(${round.id})期 即將開始`);
+  await broadcast(MSG_KEY.ROUND_PER_START, {
+    round: round.id
+  });
 
   await beginbets();
 };
@@ -60,7 +63,10 @@ const beginbets = async () => {
 
   await delay(1000);
 
-  await broadcast(`(${round.id}), 開始下注 (300S)`);
+  await broadcast(MSG_KEY.ROUND_START_BET, {
+    round: round.id,
+    during: 30
+  });
 
   await delay(30000);
 
@@ -76,7 +82,9 @@ const lockBets = async () => {
 
   await delay(1000);
 
-  await broadcast(`(${round.id}), 停止下注`);
+  await broadcast(MSG_KEY.ROUND_STOP_BET, {
+    round: round.id
+  });
 
   await updateRoundStatus(round.id, STATUS.LOCK_BETS);
 
@@ -92,7 +100,9 @@ const draw = async () => {
 
   await delay(1000);
 
-  await broadcast(`(${round.id}), 即將開獎`);
+  await broadcast(MSG_KEY.ROUND_PER_DRAW, {
+    round: round.id
+  });
 
   await updateRoundStatus(round.id, STATUS.DRAWING);
 
@@ -108,13 +118,9 @@ const draw = async () => {
 
   await delay(1000);
 
-  await broadcast(
-    `(${round.id}), 開獎結果 <pre>${JSON.stringify(
-      resultSummary,
-      null,
-      2
-    )}</pre>`
-  );
+  await broadcast(MSG_KEY.ROUND_DRAW_RESULT, {
+    round: round.id
+  });
 
   await payout();
 };
@@ -128,11 +134,16 @@ const payout = async () => {
 
   await updateRoundStatus(round.id, STATUS.PAYOUT);
 
-  await broadcast(`(${round.id}), 開始派獎`);
+  await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
+    round: round.id
+  });
 
   await delay(1000);
 
   await payoutRoundPlayer(round.id);
+
+  // TODO: 撈出Payout結果
+  // const playerBets = await getRoundPlayerBets(round.id);
 
   await reset();
 };
@@ -146,7 +157,9 @@ const reset = async () => {
 
   await delay(1000);
 
-  await broadcast(`(${round.id}), 遊戲完成 重置遊戲中`);
+  await broadcast(MSG_KEY.ROUND_RESET, {
+    round: round.id
+  });
 
   await updateRoundStatus(round.id, STATUS.RESETTING);
 
