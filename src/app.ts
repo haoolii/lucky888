@@ -1,13 +1,13 @@
 import "dotenv/config";
-import BettingManagement from "./betting-management";
-import { sys } from './gamev2/sys';
-import { ply } from './gamev2/ply';
+import { sys } from './game/sys';
+import { ply } from './game/ply';
 import { delay } from "./core/utils";
 import logger from "./core/logger";
+import { txo } from "./txo/txo";
 
 const main = async () => {
-  // new BettingManagement()
   ply();
+  txo();
   while (true) {
     await sys();
     await delay(5000);

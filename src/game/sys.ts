@@ -113,7 +113,7 @@ const draw = async () => {
 
   const resultSummary = gam?.getResult();
 
-  logger.info(results);
+  logger.info(JSON.stringify(results, null, 2));
 
   await updateRoundDiceResult(round.id, results);
 
