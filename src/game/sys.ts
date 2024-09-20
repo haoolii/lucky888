@@ -111,8 +111,6 @@ const draw = async () => {
 
   const results = (await gam?.rollDice()) || [];
 
-  const resultSummary = gam?.getResult();
-
   logger.info(JSON.stringify(results, null, 2));
 
   await updateRoundDiceResult(round.id, results);
@@ -159,11 +157,12 @@ const reset = async () => {
 
   await delay(1000);
 
-  await broadcast(MSG_KEY.ROUND_RESET, {
-    round: round.id
-  });
+  // 減少複雜
+  // await broadcast(MSG_KEY.ROUND_RESET, {
+  //   round: round.id
+  // });
 
-  await updateRoundStatus(round.id, STATUS.RESETTING);
+  // await updateRoundStatus(round.id, STATUS.RESETTING);
 
   await deleteCurrentRound();
 
