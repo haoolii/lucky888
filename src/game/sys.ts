@@ -1,7 +1,6 @@
 import logger from "../core/logger";
 import { delay } from "../core/utils";
 import { STATUS } from "./constant";
-import Gam from "./gam";
 import {
   createRound,
   deleteCurrentRound,
@@ -13,8 +12,9 @@ import {
   updateRoundDiceResult,
   updateRoundStatus,
 } from "./oper";
-import { broadcast, diceRoll } from "../tg/tg";
+import { broadcast } from "../tg/tg";
 import { MSG_KEY } from "../tg/key";
+import { rollDice } from "./gamfn";
 
 /**
  * 骰子賭局管理
@@ -107,9 +107,7 @@ const draw = async () => {
 
   await updateRoundStatus(round.id, STATUS.DRAWING);
 
-  const gam = new Gam(async () => await diceRoll());
-
-  const results = (await gam?.rollDice()) || [];
+  const results = (await rollDice()) || [];
 
   logger.info(JSON.stringify(results, null, 2));
 

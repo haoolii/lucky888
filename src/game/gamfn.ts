@@ -1,5 +1,7 @@
 import BigNumber from "bignumber.js";
 import { BET_TYPE } from "./constant";
+import { diceRoll } from "../tg/tg";
+import { delay } from "../core/utils";
 
 type DiceResult = {
   diceResults: number[];
@@ -44,6 +46,20 @@ function calculateDiceResult(diceResults: number[]): DiceResult {
     isSmallOdd,
     isSmallEven,
   };
+}
+
+export async function rollDice() {
+  let diceResults: Array<number> = [];
+  try {
+    diceResults.push(await diceRoll());
+    await delay(1000);
+    diceResults.push(await diceRoll());
+    await delay(1000);
+    diceResults.push(await diceRoll());
+    return diceResults;
+  } catch (err) {
+    throw new Error("擲骰子過程出錯了");
+  }
 }
 
 /**
@@ -111,3 +127,4 @@ export function calculatePayout(
 ): string {
   return isWin ? BigNumber(betAmount).times(betOdds[betType]).toString() : "0";
 }
+
