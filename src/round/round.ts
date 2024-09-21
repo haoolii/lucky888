@@ -116,7 +116,18 @@ const payout = async () => {
         // 取得目前 round player bets
         let playerBetRecord = await getRoundPlayerBets(db, round.id);
 
+        // 遊戲結果
         const diceResults = [round.dice1, round.dice2, round.dice3];
+
+        // 減少玩家 balance
+
+        // 解鎖玩家 lock balance
+
+        // 計算玩家輸贏與倍率
+
+        // 增加贏家餘額
+
+        // 產生訊息結果
 
         for (let record of playerBetRecord) {
             // const isWin = checkBetResult(diceResults, betType);
