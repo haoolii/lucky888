@@ -6,7 +6,7 @@
     "start": "npx ts-node ./src/index.ts",
     "build": "tsc",
     "test": "jest .",
-    "test:tg": "npx ts-node ./src/test.ts"
+    "test:dev": "npx ts-node ./src/dev.ts"
   },
   "keywords": [],
   "author": "",
@@ -32,6 +32,7 @@
     "express": "^4.21.0",
     "mustache": "^4.2.0",
     "node-telegram-bot-api": "^0.66.0",
+    "p-queue": "6.6.2",
     "winston": "^3.14.2"
   }
 }

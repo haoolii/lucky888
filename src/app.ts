@@ -4,16 +4,17 @@ import { ply } from './game/ply';
 import { delay } from "./core/utils";
 import logger from "./core/logger";
 import { txo } from "./txo/txo";
+import { round } from "./round/round";
 
 const main = async () => {
-  ply();
+  // ply();
   txo();
-  while (true) {
-    await sys();
-    await delay(5000);
-    memoryLog();
-    logger.info('Next Round');
-  }
+  // while (true) {
+  //   await round();
+  //   await delay(5000);
+  //   memoryLog();
+  //   logger.info('Next Round');
+  // }
 };
 
 const memoryLog = () => {
