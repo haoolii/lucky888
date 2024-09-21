@@ -1,20 +1,20 @@
 import "dotenv/config";
-import { sys } from './game/sys';
-import { ply } from './game/ply';
 import { delay } from "./core/utils";
 import logger from "./core/logger";
 import { txo } from "./txo/txo";
 import { round } from "./round/round";
+import { getRoundPlayerBets } from "./round/round.service";
+import db from "./db";
 
 const main = async () => {
-  // ply();
-  txo();
-  // while (true) {
-  //   await round();
-  //   await delay(5000);
-  //   memoryLog();
-  //   logger.info('Next Round');
-  // }
+  // txo();
+  // await getRoundPlayerBets(db, 'd7425059-5581-4ca5-8159-6bd746d15c9f');
+  while (true) {
+    await round();
+    await delay(5000);
+    memoryLog();
+    logger.info('Next Round');
+  }
 };
 
 const memoryLog = () => {

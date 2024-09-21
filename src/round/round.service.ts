@@ -1,6 +1,8 @@
 import BigNumber from "bignumber.js";
 import { TX } from "../db";
 import { ROUND_STATUS } from "./constant";
+import { BET_TYPE } from "../bet/constant";
+import { calculatePayout, checkBetResult } from "./utils";
 
 export const getCurrentRound = async (tx: TX) => {
     const current = await tx.currentRound.findUniqueOrThrow({
@@ -85,6 +87,7 @@ export const updateRoundDiceResult = async (tx: TX, roundId: string, results: nu
             id: roundId
         },
         data: {
+            total: results[0] + results[1] + results[2],
             dice1: results[0],
             dice2: results[1],
             dice3: results[2]
@@ -101,3 +104,15 @@ export const canPlaceBetNow = async (tx: TX) => {
 
     return round.status === ROUND_STATUS.BETTING;
 }
+
+
+export const getRoundPlayerBets = async (tx: TX, roundId: string) => {
+    const records = await tx.playerBetRecord.findMany({
+        where: {
+            roundId
+        }
+    });
+
+    return records;
+}
+

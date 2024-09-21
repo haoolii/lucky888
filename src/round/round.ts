@@ -8,14 +8,16 @@
  * reset     重置遊戲
  */
 
+import { PlayerBetRecord } from "@prisma/client";
 import logger from "../core/logger";
 import { delay } from "../core/utils";
 import db from "../db";
-import { rollDice } from "../game/gamfn";
 import { MSG_KEY } from "../tg/key";
 import { broadcast } from "../tg/tg";
 import { ROUND_STATUS } from "./constant";
-import { createRound, deleteCurrentRound, getCurrentRound, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./round.service";
+import { createRound, deleteCurrentRound, getCurrentRound, getRoundPlayerBets, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./round.service";
+import { rollDice } from "./utils";
+import { PlayerBetPayout } from "./types";
 
 const round = async () => {
     await start();
@@ -107,6 +109,22 @@ const payout = async () => {
 
     const round = await getCurrentRound(db);
 
+    await updateRoundStatus(db, round.id, ROUND_STATUS.PAYOUT);
+
+    let playerBetPayouts: PlayerBetPayout[] = []
+
+    await db.$transaction(async tx => {
+        // 取得目前 round player bets
+        let playerBetRecord = await getRoundPlayerBets(db, round.id);
+
+        const diceResults = [round.dice1, round.dice2, round.dice3];
+
+        for(let record of playerBetRecord) {
+            // const isWin = checkBetResult(diceResults, betType);
+        }
+
+    })
+
     await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
         round: round.id,
         payoutRecords: []
@@ -122,8 +140,7 @@ const reset = async () => {
 
     await deleteCurrentRound(db);
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.NOT_STARTED);
-
+    await updateRoundStatus(db, round.id, ROUND_STATUS.FINISHED);
 };
 
 export {

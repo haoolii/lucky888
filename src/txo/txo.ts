@@ -9,12 +9,12 @@ import db from "../db";
 import { parseInputToBets } from "../bet/parser";
 import { PlayerRequestBet } from "./type";
 import { playerRequestPlaceBetTx } from "./txo.service";
-import { bot, reply } from "../tg/tg";
+import { reply } from "../tg/tg";
 import { MSG_KEY } from "../tg/key";
 
-// const bot = new TelegramBot(config.TELEGRAM_TXO_BOT_TOKEN, {
-//   polling: true,
-// });
+const bot = new TelegramBot(config.TELEGRAM_TXO_BOT_TOKEN, {
+  polling: true,
+});
 
 const txo = () => {
   logger.info("TXO listing");
@@ -43,12 +43,13 @@ const txo = () => {
 
     try {
       await playerRequestPlaceBetTx(playerId, requestBets);
-    } catch (err) {
-      console.log('errr', err);
-      // logger.error(JSON.stringify(err, null, 2));
-      // bot.sendMessage(config.TELEGRAM_CHAT_ID, err.toString(), {
-      //   reply_to_message_id: msg.message_id
-      // })
+      await bot.sendMessage(config.TELEGRAM_CHAT_ID, "下注成功", {
+        reply_to_message_id: msg.message_id
+      })
+    } catch (err: any) {
+      await bot.sendMessage(config.TELEGRAM_CHAT_ID, err.message, {
+        reply_to_message_id: msg.message_id
+      })
     }
 
     // await reply(messageId, MSG_KEY.PLAYER_BET_SUCCESS, {

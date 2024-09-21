@@ -1,7 +1,9 @@
 import BigNumber from "bignumber.js";
-import { BET_TYPE } from "./constant";
 import { diceRoll } from "../tg/tg";
 import { delay } from "../core/utils";
+import { BET_TYPE } from "../bet/constant";
+import { PlayerBetRecord } from "@prisma/client";
+import { PlayerBetPayout } from "./types";
 
 type DiceResult = {
   diceResults: number[];
@@ -128,3 +130,16 @@ export function calculatePayout(
   return isWin ? BigNumber(betAmount).times(betOdds[betType]).toString() : "0";
 }
 
+// PlayerBetPayout
+export function getPlayerBetPayouts(records: PlayerBetRecord[], diceResults: number[]) {
+    let playerBetPayouts: PlayerBetPayout = [];
+
+    for(let record of records) {
+        const betType = record.betType as BET_TYPE;
+        const amount = record.amount || "0";
+        const isWin = checkBetResult(diceResults, betType);
+        const winAmount = calculatePayout(isWin, betType, amount);
+        const lostAmount = BigNumber(amount).times(-1).toString();
+        const payoutAmount = isWin ? winAmount : lostAmount;
+    }
+}

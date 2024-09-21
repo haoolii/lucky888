@@ -4,7 +4,6 @@
 import BigNumber from "bignumber.js";
 import logger from "../core/logger";
 import prisma from "../db";
-import { BET_TYPE } from "../game/constant"
 import { getPlayerBalanceInfo, lockPlayerBalance } from "../player/player.service";
 import { sumPlayerRequestBets } from "./txo.utils";
 import { getCurrentRound } from "../round/round.service";
