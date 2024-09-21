@@ -4,11 +4,11 @@
 import BigNumber from "bignumber.js";
 import logger from "../core/logger";
 import prisma from "../db";
-import { getPlayerBalanceInfo, lockPlayerBalance } from "../player/player.service";
-import { sumPlayerRequestBets } from "./txo.utils";
-import { getCurrentRound } from "../round/round.service";
-import { USER_BET_STATUS } from "../player/constant";
+import { getPlayerBalanceInfo, lockPlayerBalance } from "../player/service";
+import { sumPlayerRequestBets } from "./util";
 import { PlayerRequestBet } from "./type";
+import { getCurrentRound } from "../round/service";
+import { USER_BET_STATUS } from "../player/constant";
 
 /** 用戶下注 */
 export const playerRequestPlaceBetTx = async (playerId: string, requestBets: PlayerRequestBet[]) => {

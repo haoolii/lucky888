@@ -1,16 +1,12 @@
-// 下單機
 // 下單機 BOT 處理
 
 import TelegramBot from "node-telegram-bot-api";
 import config from "../config";
 import logger from "../core/logger";
-import { checkIsPlayerExist, createPlayer, getPlayer } from "../player/player.service";
+import { checkIsPlayerExist, createPlayer } from "../player/service";
 import db from "../db";
-import { parseInputToBets } from "../bet/parser";
-import { PlayerRequestBet } from "./type";
-import { playerRequestPlaceBetTx } from "./txo.service";
-import { reply } from "../tg/tg";
-import { MSG_KEY } from "../tg/key";
+import { parseInputToBets } from "../bet/util";
+import { playerRequestPlaceBetTx } from "./service";
 
 const bot = new TelegramBot(config.TELEGRAM_TXO_BOT_TOKEN, {
   polling: true,

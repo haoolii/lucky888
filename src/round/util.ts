@@ -3,7 +3,7 @@ import { diceRoll } from "../tg/tg";
 import { delay } from "../core/utils";
 import { BET_TYPE } from "../bet/constant";
 import { PlayerBetRecord } from "@prisma/client";
-import { PlayerBetPayout } from "./types";
+import { PlayerBetPayout } from "./type";
 
 type DiceResult = {
   diceResults: number[];

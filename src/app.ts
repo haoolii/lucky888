@@ -3,7 +3,7 @@ import { delay } from "./core/utils";
 import logger from "./core/logger";
 import { txo } from "./txo/txo";
 import { round } from "./round/round";
-import { getRoundPlayerBets } from "./round/round.service";
+import { getRoundPlayerBets } from "./round/service";
 import db from "./db";
 
 const main = async () => {

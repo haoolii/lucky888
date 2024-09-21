@@ -8,16 +8,15 @@
  * reset     重置遊戲
  */
 
-import { PlayerBetRecord } from "@prisma/client";
 import logger from "../core/logger";
 import { delay } from "../core/utils";
 import db from "../db";
 import { MSG_KEY } from "../tg/key";
 import { broadcast } from "../tg/tg";
 import { ROUND_STATUS } from "./constant";
-import { createRound, deleteCurrentRound, getCurrentRound, getRoundPlayerBets, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./round.service";
-import { rollDice } from "./utils";
-import { PlayerBetPayout } from "./types";
+import { createRound, deleteCurrentRound, getCurrentRound, getRoundPlayerBets, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./service";
+import { rollDice } from "./util";
+import { PlayerBetPayout } from "./type";
 
 const round = async () => {
     await start();
@@ -119,7 +118,7 @@ const payout = async () => {
 
         const diceResults = [round.dice1, round.dice2, round.dice3];
 
-        for(let record of playerBetRecord) {
+        for (let record of playerBetRecord) {
             // const isWin = checkBetResult(diceResults, betType);
         }
 

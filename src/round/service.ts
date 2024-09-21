@@ -1,8 +1,5 @@
-import BigNumber from "bignumber.js";
 import { TX } from "../db";
 import { ROUND_STATUS } from "./constant";
-import { BET_TYPE } from "../bet/constant";
-import { calculatePayout, checkBetResult } from "./utils";
 
 export const getCurrentRound = async (tx: TX) => {
     const current = await tx.currentRound.findUniqueOrThrow({
