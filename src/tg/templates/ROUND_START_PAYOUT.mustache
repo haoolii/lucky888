@@ -1,6 +1,6 @@
 {{round}}, 開始派獎
 ====================
-{{#payoutRecords}}
-    {{playerId}} {{playerBetRecord.betType}} {{playerBetRecord.amount}}, {{playerBetRecord.status}} {{payoutAmount}}, 
-{{/payoutRecords}}
+{{#records}}
+    {{username}} [{{playerId}}] {{betType}}{{betAmount}},{{betResult}}{{winLossAmount}} 餘額:{{availableBalance}}
+{{/records}}
 ====================

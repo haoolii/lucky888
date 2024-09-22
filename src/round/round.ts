@@ -15,8 +15,12 @@ import { MSG_KEY } from "../tg/key";
 import { broadcast } from "../tg/tg";
 import { ROUND_STATUS } from "./constant";
 import { createRound, deleteCurrentRound, getCurrentRound, getRoundPlayerBets, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./service";
-import { rollDice } from "./util";
-import { PlayerBetPayout } from "./type";
+import { calculatePlayerBetReward, rollDice, sanitizeDiceResult } from "./util";
+import { RoundPlayerResultRecord } from "./type";
+import { addPlayerBalance, createPlayerPayoutRecord, getPlayer, getPlayerBalanceInfo, subtractPlayerBalance, unlockPlayerBalance, updatePlayerBetRecord } from "../player/service";
+import { BET_TYPE } from "../bet/constant";
+import { USER_BET_STATUS } from "../player/constant";
+import BigNumber from "bignumber.js";
 
 const round = async () => {
     await start();
@@ -110,34 +114,62 @@ const payout = async () => {
 
     await updateRoundStatus(db, round.id, ROUND_STATUS.PAYOUT);
 
-    let playerBetPayouts: PlayerBetPayout[] = []
+    // 取得此局所有玩家下注紀錄
+    const playerBetRecords = await getRoundPlayerBets(db, round.id);
 
-    await db.$transaction(async tx => {
-        // 取得目前 round player bets
-        let playerBetRecord = await getRoundPlayerBets(db, round.id);
+    const diceResults = sanitizeDiceResult([round.dice1, round.dice2, round.dice3]);
 
-        // 遊戲結果
-        const diceResults = [round.dice1, round.dice2, round.dice3];
+    const roundPlayerResultRecords: Array<RoundPlayerResultRecord> = []
 
-        // 減少玩家 balance
-
-        // 解鎖玩家 lock balance
-
-        // 計算玩家輸贏與倍率
-
-        // 增加贏家餘額
-
-        // 產生訊息結果
-
-        for (let record of playerBetRecord) {
-            // const isWin = checkBetResult(diceResults, betType);
+    for (let playerBetRecord of playerBetRecords) {
+        if (!sanitizeDiceResult(diceResults)) {
+            continue;
         }
 
-    })
+        const { username } = await getPlayer(db, playerBetRecord.playerId);
+
+        await db.$transaction(async tx => {
+            // 減少玩家 balance
+            await subtractPlayerBalance(tx, playerBetRecord.playerId, playerBetRecord.amount);
+
+            // 解鎖玩家 lock balance
+            await unlockPlayerBalance(tx, playerBetRecord.playerId, playerBetRecord.amount);
+
+            // 計算玩家輸贏與倍率
+            const { isWin, reward } = calculatePlayerBetReward(diceResults, playerBetRecord.betType as BET_TYPE, playerBetRecord.amount);
+
+            // 更新玩家下注紀錄
+            await updatePlayerBetRecord(tx, playerBetRecord.id, isWin ? USER_BET_STATUS.WIN : USER_BET_STATUS.LOST);
+
+            // 增加贏家餘額
+            await addPlayerBalance(tx, playerBetRecord.playerId, reward);
+
+            // 寫入獎金紀錄
+            await createPlayerPayoutRecord(tx, playerBetRecord.playerId, playerBetRecord.roundId, playerBetRecord.id, reward);
+
+            // 產生訊息結果
+            roundPlayerResultRecords.push({
+                playerId: playerBetRecord.playerId,
+                username,
+                betType: playerBetRecord.betType as BET_TYPE,
+                betAmount: playerBetRecord.amount,
+                betResult: isWin ? '贏' : '輸',
+                winLossAmount: BigNumber(reward).minus(playerBetRecord.amount).toString(),
+                availableBalance: '-'
+            })
+        })
+    }
+
+    for (let record of roundPlayerResultRecords) {
+        // 取得用戶餘額
+        const { availableBalance } = await getPlayerBalanceInfo(db, record.playerId);
+
+        record.availableBalance = availableBalance;
+    }
 
     await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
         round: round.id,
-        payoutRecords: []
+        records: roundPlayerResultRecords
     });
 
     await reset();

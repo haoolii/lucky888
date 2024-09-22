@@ -7,7 +7,7 @@ import { getRoundPlayerBets } from "./round/service";
 import db from "./db";
 
 const main = async () => {
-  // txo();
+  txo();
   // await getRoundPlayerBets(db, 'd7425059-5581-4ca5-8159-6bd746d15c9f');
   while (true) {
     await round();

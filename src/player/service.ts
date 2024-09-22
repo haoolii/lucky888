@@ -1,15 +1,17 @@
 import BigNumber from "bignumber.js";
 import { TX } from "../db";
+import { USER_BET_STATUS } from "./constant";
 
 /**
  * Player 操作
  * 1. 
 */
 /** 新建用戶 */
-export const createPlayer = async (tx: TX, id: string) => {
+export const createPlayer = async (tx: TX, id: string, username: string) => {
     await tx.player.create({
         data: {
             id,
+            username,
             balance: '0',
             lockedBalance: '0'
         }
@@ -21,6 +23,24 @@ export const getPlayer = async (tx: TX, id: string) => {
     return await tx.player.findUniqueOrThrow({
         where: {
             id
+        }
+    })
+}
+
+/** 更新用戶名稱 */
+export const upsertPlayerUserName = async (tx: TX, id: string, username: string) => {
+    return await tx.player.upsert({
+        where: {
+            id
+        },
+        create: {
+            id,
+            username,
+            balance: '0',
+            lockedBalance: '0'
+        },
+        update: {
+            username
         }
     })
 }
@@ -116,4 +136,28 @@ export const subtractPlayerBalance = async (tx: TX, id: string, amount: string) 
     });
 
     return newBalance;
+}
+
+/** 新增 payout reward 紀錄 */
+export const createPlayerPayoutRecord = async (tx: TX, playerId: string, roundId: string, playerBetRecordId: string, payoutAmount: string) => {
+    await tx.payoutPlayerRecord.create({
+        data: {
+            playerId,
+            roundId,
+            playerBetRecordId,
+            payoutAmount
+        }
+    })
+}
+
+/** 更新用戶下注結果 */
+export const updatePlayerBetRecord = async (tx: TX, playerBetRecordId: string, status: USER_BET_STATUS) => {
+    await tx.playerBetRecord.update({
+        where: {
+            id: playerBetRecordId,
+        },
+        data: {
+            status
+        }
+    })
 }

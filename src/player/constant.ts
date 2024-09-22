@@ -17,7 +17,7 @@ export enum USER_BET_STATUS {
     /**
      * 下注贏了，用戶獲得了獎金。
      */
-    WON = 'WON',
+    WIN = 'WIN',
 
     /**
      * 下注輸了，沒有獲得獎金。

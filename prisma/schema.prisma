@@ -12,6 +12,7 @@ datasource db {
 
 model Player {
   id            String   @id
+  username      String   @default("")
   balance       String
   lockedBalance String
   createdAt     DateTime @default(now())

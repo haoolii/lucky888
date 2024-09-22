@@ -3,7 +3,7 @@
 import TelegramBot from "node-telegram-bot-api";
 import config from "../config";
 import logger from "../core/logger";
-import { checkIsPlayerExist, createPlayer } from "../player/service";
+import { checkIsPlayerExist, upsertPlayerUserName, createPlayer, getPlayer } from "../player/service";
 import db from "../db";
 import { parseInputToBets } from "../bet/util";
 import { playerRequestPlaceBetTx } from "./service";
@@ -25,15 +25,9 @@ const txo = () => {
 
     const playerId = `${msg.from?.id}`;
 
-    await db.$transaction(async (tx) => {
+    const username = `${msg.from?.username}`;
 
-      const exist = await checkIsPlayerExist(tx, playerId);
-
-      if (!exist) {
-        await createPlayer(tx, playerId);
-      }
-
-    })
+    await upsertPlayerUserName(db, playerId, username)
 
     const requestBets = parseInputToBets(msg.text || "");
 

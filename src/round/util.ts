@@ -2,8 +2,6 @@ import BigNumber from "bignumber.js";
 import { diceRoll } from "../tg/tg";
 import { delay } from "../core/utils";
 import { BET_TYPE } from "../bet/constant";
-import { PlayerBetRecord } from "@prisma/client";
-import { PlayerBetPayout } from "./type";
 
 type DiceResult = {
   diceResults: number[];
@@ -119,27 +117,35 @@ export const betOdds: { [key in BET_TYPE]: number } = {
   [BET_TYPE.TRIPLE]: 10, // 圍骰
 };
 
-/**
- * 外部計算獎金
- */
-export function calculatePayout(
-  isWin: boolean,
+// 計算玩家獎金結果
+export function calculatePlayerBetReward(
+  diceResults: number[],
   betType: BET_TYPE,
   betAmount: string
-): string {
-  return isWin ? BigNumber(betAmount).times(betOdds[betType]).toString() : "0";
+) {
+  const isWin = checkBetResult(diceResults, betType);
+  return {
+    isWin: isWin,
+    reward: isWin ? BigNumber(betAmount).times(betOdds[betType]).toString() : "0"
+  }
 }
 
-// PlayerBetPayout
-export function getPlayerBetPayouts(records: PlayerBetRecord[], diceResults: number[]) {
-    let playerBetPayouts: PlayerBetPayout = [];
+// 確保結果
+export function sanitizeDiceResult(diceResults: Array<number | null>): number[] {
+  // 檢查陣列長度是否為 3
+  if (diceResults.length !== 3) {
+    throw new Error('Dice result must have exactly 3 values.');
+  }
 
-    for(let record of records) {
-        const betType = record.betType as BET_TYPE;
-        const amount = record.amount || "0";
-        const isWin = checkBetResult(diceResults, betType);
-        const winAmount = calculatePayout(isWin, betType, amount);
-        const lostAmount = BigNumber(amount).times(-1).toString();
-        const payoutAmount = isWin ? winAmount : lostAmount;
-    }
+  // 檢查所有元素是否為非 null 且為有效的數字
+  if (!diceResults.every(dice => dice !== null && typeof dice === 'number')) {
+    throw new Error('All dice results must be non-null numbers.');
+  }
+
+  return diceResults;
+}
+
+// 產生派獎結果資訊
+export function getRoundPayoutResultMsg() {
+
 }
