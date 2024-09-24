@@ -12,189 +12,271 @@ import logger from "../core/logger";
 import { delay } from "../core/utils";
 import db from "../db";
 import { MSG_KEY } from "../tg/key";
-import { broadcast } from "../tg/tg";
+import { bot, broadcast } from "../tg/tg";
 import { ROUND_STATUS } from "./constant";
-import { createRound, deleteCurrentRound, getCurrentRound, getRoundPlayerBets, setCurrentRound, updateRoundDiceResult, updateRoundStatus } from "./service";
+import {
+  createRound,
+  deleteCurrentRound,
+  getCurrentRound,
+  getRoundPlayerBets,
+  setCurrentRound,
+  updateRoundDiceResult,
+  updateRoundStatus,
+} from "./service";
 import { calculatePlayerBetReward, rollDice, sanitizeDiceResult } from "./util";
 import { RoundPlayerResultRecord } from "./type";
-import { addPlayerBalance, createPlayerPayoutRecord, getPlayer, getPlayerBalanceInfo, subtractPlayerBalance, unlockPlayerBalance, updatePlayerBetRecord } from "../player/service";
+import {
+  addPlayerBalance,
+  createPlayerPayoutRecord,
+  getPlayer,
+  getPlayerBalanceInfo,
+  subtractPlayerBalance,
+  unlockPlayerBalance,
+  updatePlayerBetRecord,
+} from "../player/service";
 import { BET_TYPE } from "../bet/constant";
 import { USER_BET_STATUS } from "../player/constant";
 import BigNumber from "bignumber.js";
+import config from "../config";
+import { Readable } from "stream";
+import { Colors, Data, generateImage } from "./generateImage";
+
+// 數據和顏色
+const data: Data = [
+  [7, 11, 14, 16, 13, 15, 12, 12],
+  [13, 13, 11, 8, 11, 9, 7, 10],
+  [10, 15, 14, 12, 10, 9, 8, 7],
+  [6, 11, 8, 9, 12, 14, 10, 13],
+];
+
+const colors: Colors = [
+  ["blue", "red", "red", "red", "blue", "blue", "blue", "red"],
+  ["red", "red", "blue", "blue", "blue", "red", "blue", "red"],
+  ["red", "blue", "red", "blue", "red", "blue", "red", "blue"],
+  ["blue", "red", "blue", "red", "blue", "red", "blue", "red"],
+];
 
 const round = async () => {
-    await start();
+  await start();
 };
 
 const start = async () => {
-    logger.info("[STATUS] Start");
+  logger.info("[STATUS] Start");
 
-    await deleteCurrentRound(db);
+  const imageBuffer = generateImage(data, colors);
 
-    const round = await createRound(db);
+  await bot.sendPhoto(
+    config.TELEGRAM_CHAT_ID,
+    imageBuffer,
+    {
+        caption: 'Hello World',
+        parse_mode: 'HTML'
+    }
+  );
+  return;
+  await deleteCurrentRound(db);
 
-    logger.info("[STATUS] Start Round", round.id);
+  const round = await createRound(db);
 
-    await setCurrentRound(db, round.id);
+  logger.info("[STATUS] Start Round", round.id);
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.NOT_STARTED);
+  await setCurrentRound(db, round.id);
 
-    await delay(1000);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.NOT_STARTED);
 
-    await beginbets();
+  await delay(1000);
+
+  await beginbets();
 };
 
 const beginbets = async () => {
-    logger.info("[STATUS] Start Begin Bets");
+  logger.info("[STATUS] Start Begin Bets");
 
-    const round = await getCurrentRound(db);
+  const round = await getCurrentRound(db);
 
-    if (!round) return;
+  if (!round) return;
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.BETTING);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.BETTING);
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(MSG_KEY.ROUND_START_BET, {
-        round: round.id,
-        during: 30
-    });
+  await broadcast(MSG_KEY.ROUND_START_BET, {
+    round: round.id,
+    during: 30,
+  });
 
-    await delay(30000);
+  await delay(30000);
 
-    await lockBets();
+  await lockBets();
 };
 
 const lockBets = async () => {
-    logger.info("[STATUS] Start Lock Bets");
+  logger.info("[STATUS] Start Lock Bets");
 
-    const round = await getCurrentRound(db);
+  const round = await getCurrentRound(db);
 
-    if (!round) return;
+  if (!round) return;
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(MSG_KEY.ROUND_STOP_BET, {
-        round: round.id
-    });
+  await broadcast(MSG_KEY.ROUND_STOP_BET, {
+    round: round.id,
+  });
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.LOCK_BETS);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.LOCK_BETS);
 
-    await draw();
+  await draw();
 };
 
 const draw = async () => {
-    logger.info("[STATUS] Start Draw");
+  logger.info("[STATUS] Start Draw");
 
-    const round = await getCurrentRound(db);
+  const round = await getCurrentRound(db);
 
-    if (!round) return;
+  if (!round) return;
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(MSG_KEY.ROUND_PER_DRAW, {
-        round: round.id
-    });
+  await broadcast(MSG_KEY.ROUND_PER_DRAW, {
+    round: round.id,
+  });
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.DRAWING);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.DRAWING);
 
-    const results = (await rollDice()) || [];
+  const results = (await rollDice()) || [];
 
-    logger.info(JSON.stringify(results, null, 2));
+  logger.info(JSON.stringify(results, null, 2));
 
-    await updateRoundDiceResult(db, round.id, results);
+  await updateRoundDiceResult(db, round.id, results);
 
-    await delay(1000);
+  await delay(1000);
 
-    await broadcast(MSG_KEY.ROUND_DRAW_RESULT, {
-        round: round.id
-    });
+  // 生成 Image
+  const imageBuffer = generateImage(data, colors);
 
-    await payout();
+  await bot.sendDocument(
+    config.TELEGRAM_CHAT_ID,
+    imageBuffer
+  );
+
+  await broadcast(MSG_KEY.ROUND_DRAW_RESULT, {
+    round: round.id,
+  });
+
+  await payout();
 };
 
 const payout = async () => {
-    logger.info("[STATUS] Start Payout");
+  logger.info("[STATUS] Start Payout");
 
-    const round = await getCurrentRound(db);
+  const round = await getCurrentRound(db);
 
-    if (!round) return;
+  if (!round) return;
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.PAYOUT);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.PAYOUT);
 
-    // 取得此局所有玩家下注紀錄
-    const playerBetRecords = await getRoundPlayerBets(db, round.id);
+  // 取得此局所有玩家下注紀錄
+  const playerBetRecords = await getRoundPlayerBets(db, round.id);
 
-    const diceResults = sanitizeDiceResult([round.dice1, round.dice2, round.dice3]);
+  const diceResults = sanitizeDiceResult([
+    round.dice1,
+    round.dice2,
+    round.dice3,
+  ]);
 
-    const roundPlayerResultRecords: Array<RoundPlayerResultRecord> = []
+  const roundPlayerResultRecords: Array<RoundPlayerResultRecord> = [];
 
-    for (let playerBetRecord of playerBetRecords) {
-        if (!sanitizeDiceResult(diceResults)) {
-            continue;
-        }
-
-        const { username } = await getPlayer(db, playerBetRecord.playerId);
-
-        await db.$transaction(async tx => {
-            // 減少玩家 balance
-            await subtractPlayerBalance(tx, playerBetRecord.playerId, playerBetRecord.amount);
-
-            // 解鎖玩家 lock balance
-            await unlockPlayerBalance(tx, playerBetRecord.playerId, playerBetRecord.amount);
-
-            // 計算玩家輸贏與倍率
-            const { isWin, reward } = calculatePlayerBetReward(diceResults, playerBetRecord.betType as BET_TYPE, playerBetRecord.amount);
-
-            // 更新玩家下注紀錄
-            await updatePlayerBetRecord(tx, playerBetRecord.id, isWin ? USER_BET_STATUS.WIN : USER_BET_STATUS.LOST);
-
-            // 增加贏家餘額
-            await addPlayerBalance(tx, playerBetRecord.playerId, reward);
-
-            // 寫入獎金紀錄
-            await createPlayerPayoutRecord(tx, playerBetRecord.playerId, playerBetRecord.roundId, playerBetRecord.id, reward);
-
-            // 產生訊息結果
-            roundPlayerResultRecords.push({
-                playerId: playerBetRecord.playerId,
-                username,
-                betType: playerBetRecord.betType as BET_TYPE,
-                betAmount: playerBetRecord.amount,
-                betResult: isWin ? '贏' : '輸',
-                winLossAmount: BigNumber(reward).minus(playerBetRecord.amount).toString(),
-                availableBalance: '-'
-            })
-        })
+  for (let playerBetRecord of playerBetRecords) {
+    if (!sanitizeDiceResult(diceResults)) {
+      continue;
     }
 
-    for (let record of roundPlayerResultRecords) {
-        // 取得用戶餘額
-        const { availableBalance } = await getPlayerBalanceInfo(db, record.playerId);
+    const { username } = await getPlayer(db, playerBetRecord.playerId);
 
-        record.availableBalance = availableBalance;
-    }
+    await db.$transaction(async (tx) => {
+      // 減少玩家 balance
+      await subtractPlayerBalance(
+        tx,
+        playerBetRecord.playerId,
+        playerBetRecord.amount
+      );
 
-    await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
-        round: round.id,
-        records: roundPlayerResultRecords
+      // 解鎖玩家 lock balance
+      await unlockPlayerBalance(
+        tx,
+        playerBetRecord.playerId,
+        playerBetRecord.amount
+      );
+
+      // 計算玩家輸贏與倍率
+      const { isWin, reward } = calculatePlayerBetReward(
+        diceResults,
+        playerBetRecord.betType as BET_TYPE,
+        playerBetRecord.amount
+      );
+
+      // 更新玩家下注紀錄
+      await updatePlayerBetRecord(
+        tx,
+        playerBetRecord.id,
+        isWin ? USER_BET_STATUS.WIN : USER_BET_STATUS.LOST
+      );
+
+      // 增加贏家餘額
+      await addPlayerBalance(tx, playerBetRecord.playerId, reward);
+
+      // 寫入獎金紀錄
+      await createPlayerPayoutRecord(
+        tx,
+        playerBetRecord.playerId,
+        playerBetRecord.roundId,
+        playerBetRecord.id,
+        reward
+      );
+
+      // 產生訊息結果
+      roundPlayerResultRecords.push({
+        playerId: playerBetRecord.playerId,
+        username,
+        betType: playerBetRecord.betType as BET_TYPE,
+        betAmount: playerBetRecord.amount,
+        betResult: isWin ? "贏" : "輸",
+        winLossAmount: BigNumber(reward)
+          .minus(playerBetRecord.amount)
+          .toString(),
+        availableBalance: "-",
+      });
     });
+  }
 
-    await reset();
+  for (let record of roundPlayerResultRecords) {
+    // 取得用戶餘額
+    const { availableBalance } = await getPlayerBalanceInfo(
+      db,
+      record.playerId
+    );
+
+    record.availableBalance = availableBalance;
+  }
+
+  await broadcast(MSG_KEY.ROUND_START_PAYOUT, {
+    round: round.id,
+    records: roundPlayerResultRecords,
+  });
+
+  await reset();
 };
 
 const reset = async () => {
-    logger.info("[STATUS] Start Reset");
+  logger.info("[STATUS] Start Reset");
 
-    const round = await getCurrentRound(db);
+  const round = await getCurrentRound(db);
 
-    if (!round) return;
+  if (!round) return;
 
-    await deleteCurrentRound(db);
+  await deleteCurrentRound(db);
 
-    await updateRoundStatus(db, round.id, ROUND_STATUS.FINISHED);
+  await updateRoundStatus(db, round.id, ROUND_STATUS.FINISHED);
 };
 
-export {
-    round
-}
+export { round };
