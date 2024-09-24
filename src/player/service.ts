@@ -45,16 +45,6 @@ export const upsertPlayerUserName = async (tx: TX, id: string, username: string)
     })
 }
 
-/** 確定是否用戶存在 */
-export const checkIsPlayerExist = async (tx: TX, id: string) => {
-    try {
-        const player = await getPlayer(tx, id);
-        return !!player
-    } catch (err) {
-        return false;
-    }
-}
-
 /** 取得用戶餘額資訊 */
 export const getPlayerBalanceInfo = async (tx: TX, id: string) => {
     const player = await getPlayer(tx, id);

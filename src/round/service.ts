@@ -1,20 +1,29 @@
 import { TX } from "../db";
 import { ROUND_STATUS } from "./constant";
 
+
+import PQueue from "p-queue";
+
+const queue = new PQueue({ concurrency: 1 });
+
 export const getCurrentRound = async (tx: TX) => {
-    const current = await tx.currentRound.findUniqueOrThrow({
-        where: {
-            id: 'current'
-        }
-    })
+    return queue.add(async () => {
+        const current = await tx.currentRound.findUnique({
+            where: {
+                id: 'current'
+            }
+        })
 
-    const round = await tx.betRound.findUniqueOrThrow({
-        where: {
-            id: current.roundId
-        }
-    })
+        if (!current) return null;
 
-    return round;
+        const round = await tx.betRound.findUnique({
+            where: { 
+                id: current.roundId
+            }
+        })
+
+        return round;
+    })
 }
 
 export const deleteCurrentRound = async (tx: TX) => {
@@ -93,6 +102,7 @@ export const updateRoundDiceResult = async (tx: TX, roundId: string, results: nu
 }
 
 export const canPlaceBetNow = async (tx: TX) => {
+
     const round = await getCurrentRound(tx);
 
     if (!round) {

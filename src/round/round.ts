@@ -49,6 +49,8 @@ const beginbets = async () => {
 
     const round = await getCurrentRound(db);
 
+    if (!round) return;
+
     await updateRoundStatus(db, round.id, ROUND_STATUS.BETTING);
 
     await delay(1000);
@@ -68,6 +70,8 @@ const lockBets = async () => {
 
     const round = await getCurrentRound(db);
 
+    if (!round) return;
+
     await delay(1000);
 
     await broadcast(MSG_KEY.ROUND_STOP_BET, {
@@ -83,6 +87,8 @@ const draw = async () => {
     logger.info("[STATUS] Start Draw");
 
     const round = await getCurrentRound(db);
+
+    if (!round) return;
 
     await delay(1000);
 
@@ -111,6 +117,8 @@ const payout = async () => {
     logger.info("[STATUS] Start Payout");
 
     const round = await getCurrentRound(db);
+
+    if (!round) return;
 
     await updateRoundStatus(db, round.id, ROUND_STATUS.PAYOUT);
 
@@ -179,6 +187,8 @@ const reset = async () => {
     logger.info("[STATUS] Start Reset");
 
     const round = await getCurrentRound(db);
+
+    if (!round) return;
 
     await deleteCurrentRound(db);
 

@@ -9,6 +9,7 @@ import { sumPlayerRequestBets } from "./util";
 import { PlayerRequestBet } from "./type";
 import { getCurrentRound } from "../round/service";
 import { USER_BET_STATUS } from "../player/constant";
+import { SystemError } from "../core/error";
 
 /** 用戶下注 */
 export const playerRequestPlaceBetTx = async (
@@ -41,6 +42,10 @@ export const playerRequestPlaceBetTx = async (
 
     // 3. 開始下注
     const currentRound = await getCurrentRound(tx);
+    
+    if (!currentRound) {
+      throw new SystemError('Current round is not exist')
+    }
 
     logger.info(`PlayerID: ${playerId}, ${currentRound.id}期賭局`);
 
