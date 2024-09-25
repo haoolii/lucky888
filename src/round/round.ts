@@ -38,23 +38,6 @@ import { BET_TYPE } from "../bet/constant";
 import { USER_BET_STATUS } from "../player/constant";
 import BigNumber from "bignumber.js";
 import config from "../config";
-import { Readable } from "stream";
-import { Colors, Data, generateImage } from "./generateImage";
-
-// 數據和顏色
-const data: Data = [
-  [7, 11, 14, 16, 13, 15, 12, 12],
-  [13, 13, 11, 8, 11, 9, 7, 10],
-  [10, 15, 14, 12, 10, 9, 8, 7],
-  [6, 11, 8, 9, 12, 14, 10, 13],
-];
-
-const colors: Colors = [
-  ["blue", "red", "red", "red", "blue", "blue", "blue", "red"],
-  ["red", "red", "blue", "blue", "blue", "red", "blue", "red"],
-  ["red", "blue", "red", "blue", "red", "blue", "red", "blue"],
-  ["blue", "red", "blue", "red", "blue", "red", "blue", "red"],
-];
 
 const round = async () => {
   await start();
@@ -63,17 +46,6 @@ const round = async () => {
 const start = async () => {
   logger.info("[STATUS] Start");
 
-  const imageBuffer = generateImage(data, colors);
-
-  await bot.sendPhoto(
-    config.TELEGRAM_CHAT_ID,
-    imageBuffer,
-    {
-        caption: 'Hello World',
-        parse_mode: 'HTML'
-    }
-  );
-  return;
   await deleteCurrentRound(db);
 
   const round = await createRound(db);
@@ -150,14 +122,6 @@ const draw = async () => {
   await updateRoundDiceResult(db, round.id, results);
 
   await delay(1000);
-
-  // 生成 Image
-  const imageBuffer = generateImage(data, colors);
-
-  await bot.sendDocument(
-    config.TELEGRAM_CHAT_ID,
-    imageBuffer
-  );
 
   await broadcast(MSG_KEY.ROUND_DRAW_RESULT, {
     round: round.id,
